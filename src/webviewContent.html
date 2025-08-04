@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      background: #1e1e1e;
+      color: #e5e5e5;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      padding: 18px 20px 10px 20px;
+      font-size: 1.3em;
+      font-weight: bold;
+      letter-spacing: 1px;
+      background: #23272e;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .clear-chat-btn {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 1.2em;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    
+    .clear-chat-btn:hover {
+      color: #ff6666;
+      background: rgba(255, 102, 102, 0.1);
+    }
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 18px 16px 0 16px;
+      overflow-y: auto;
+      gap: 16px;
+    }
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      margin-bottom: 4px;
+      font-size: 1em;
+      word-break: break-word;
+      box-shadow: 0 2px 8px #0002;
+    }
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(90deg, #00c3ff 0%, #0072ff 100%);
+      color: #fff;
+    }
+    .message.assistant {
+      align-self: flex-start;
+      background: #23272e;
+      color: #e5e5e5;
+    }
+    .message .markdown-body {
+      background: none;
+      color: inherit;
+      padding: 0;
+      border-radius: 0;
+      font-size: 1em;
+    }
+    pre {
+      position: relative;
+      margin: 12px 0 18px 0;
+    }
+    pre code {
+      display: block;
+      background: #181a20;
+      color: #e5e5e5;
+      padding: 14px 12px 14px 18px;
+      border-radius: 8px;
+      font-size: 0.98em;
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      overflow-x: auto;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 10px;
+      right: 14px;
+      background: #23272e;
+      color: #00c3ff;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.95em;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+      z-index: 2;
+    }
+    .copy-btn:hover {
+      opacity: 1;
+      background: #00c3ff;
+      color: #fff;
+    }
+    .input-bar {
+      display: flex;
+      gap: 8px;
+      padding: 16px;
+      background: #23272e;
+      border-top: 1px solid #333;
+    }
+    .input-bar textarea {
+      flex: 1;
+      background: #181a20;
+      color: #e5e5e5;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 1em;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      min-height: 40px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .input-bar button {
+      background: linear-gradient(90deg, #00c3ff 0%, #0072ff 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .input-bar button:hover {
+      opacity: 0.85;
+      transform: scale(1.05);
+    }
+    
+    .input-bar button:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    .input-bar textarea:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    
+    /* Loading mesajı stilleri */
+    .loading-message {
+      background: #23272e !important;
+      border: 1px solid #333;
+    }
+    
+    .loading-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .loading-dots {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .loading-dots span {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #00c3ff;
+      animation: loading-dots 1.4s infinite ease-in-out;
+    }
+    
+    .loading-dots span:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+    
+    .loading-dots span:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+    
+    @keyframes loading-dots {
+      0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+      }
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .loading-text {
+      color: #00c3ff;
+      font-size: 0.95em;
+      font-weight: 500;
+    }
+    
+    /* Hata mesajı stilleri */
+    .error-message {
+      background: #2d1b1b !important;
+      border: 1px solid #ff4444;
+    }
+    
+    .error-content {
+      display: flex;
+      align-items: center;
+    }
+    
+    .error-text {
+      color: #ff6666;
+      font-size: 0.95em;
+      font-weight: 500;
+    }
+    
+    /* Dosya işlemleri stilleri */
+    .file-content, .file-tree, .project-files {
+      background: #1a1d23 !important;
+      border: 1px solid #333;
+    }
+    
+    .file-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: #23272e;
+      border-bottom: 1px solid #333;
+      border-radius: 8px 8px 0 0;
+    }
+    
+    .file-name {
+      color: #00c3ff;
+      font-weight: 500;
+      font-size: 0.9em;
+    }
+    
+    .copy-file-btn {
+      background: #00c3ff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.8em;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    
+    .copy-file-btn:hover {
+      opacity: 0.8;
+    }
+    
+    .files-list {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    
+    .file-item {
+      padding: 4px 8px;
+      color: #e5e5e5;
+      font-size: 0.9em;
+      border-bottom: 1px solid #333;
+    }
+    
+    .file-item:last-child {
+      border-bottom: none;
+    }
+    
+    .file-notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9em;
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    .file-notification.success {
+      background: #28a745;
+    }
+    
+    .file-notification.error {
+      background: #dc3545;
+    }
+    
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+  <link href="{{styleUri}}" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="{{scriptUri}}"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/common.min.js"></script>
+</head>
+<body>
+  <div class="header">
+    Chat
+    <button id="clear-chat" class="clear-chat-btn" title="Clear conversation">🗑️</button>
+  </div>
+  <div class="chat-container" id="chat">
+  </div>
+  <form class="input-bar" id="input-form">
+    <textarea id="user-input" placeholder="Mesajınızı yazın..." autocomplete="off" rows="1"></textarea>
+    <button id="sendBtn" type="submit" title="Gönder">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+      </svg>
+    </button>
+  </form>
+  <script>
+    // Global değişkenler
+    var vscode = null;
+    var form = null;
+    var input = null;
+    var sendBtn = null;
+    var chat = null;
+    var isLoading = false; // Loading state
+    var loadingTimeout = null; // Loading timeout
+    var conversationHistory = []; // Conversation history
+
+    // Sayfa yüklendiğinde çalışacak fonksiyon
+    function initializeWebview() {
+      // VSCode API'sini al
+      if (typeof acquireVsCodeApi !== 'undefined') {
+        vscode = acquireVsCodeApi();
+      }
+
+      // DOM elementlerini al
+      form = document.getElementById('input-form');
+      input = document.getElementById('user-input');
+      sendBtn = document.getElementById('sendBtn');
+      chat = document.getElementById('chat');
+      var clearChatBtn = document.getElementById('clear-chat');
+
+      // Event listener'ları ekle
+      if (form) {
+        form.addEventListener('submit', handleSubmit);
+      }
+      
+      if (sendBtn) {
+        sendBtn.addEventListener('click', handleSubmit);
+      }
+      
+      if (input) {
+        input.addEventListener('keypress', handleKeyPress);
+        input.addEventListener('input', adjustTextareaHeight);
+      }
+      
+      if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', function() {
+          if (confirm('Are you sure you want to clear the conversation?')) {
+            clearConversationHistory();
+          }
+        });
+      }
+
+      // Conversation history'yi yükle
+      loadConversationHistory();
+      
+      // Sayfa yüklendiğinde history'yi otomatik yükle
+      setTimeout(() => {
+        if (vscode) {
+          vscode.postMessage({ command: 'getHistory' });
+        }
+      }, 500);
+    }
+
+    // Submit handler
+    function handleSubmit(e) {
+      e.preventDefault();
+      sendMessage();
+    }
+
+    // Key press handler
+    function handleKeyPress(e) {
+      if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
+        e.preventDefault();
+        sendMessage();
+      }
+      // Shift+Enter ile alt satıra geç (otomatik olarak çalışır)
+      
+      // Textarea yüksekliğini otomatik ayarla
+      setTimeout(() => {
+        adjustTextareaHeight();
+      }, 0);
+    }
+    
+    // Textarea yüksekliğini otomatik ayarla
+    function adjustTextareaHeight() {
+      if (input) {
+        input.style.height = 'auto';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+      }
+    }
+
+    // Loading state'i güncelle
+    function setLoadingState(loading) {
+      isLoading = loading;
+      
+      if (input) {
+        input.disabled = loading;
+      }
+      
+      if (sendBtn) {
+        sendBtn.disabled = loading;
+        if (loading) {
+          sendBtn.style.opacity = '0.6';
+          sendBtn.style.transform = 'scale(0.95)';
+        } else {
+          sendBtn.style.opacity = '1';
+          sendBtn.style.transform = 'scale(1)';
+        }
+      }
+      
+      // Loading mesajını göster/gizle
+      if (loading) {
+        showLoadingMessage();
+        // 30 saniye timeout ekle
+        loadingTimeout = setTimeout(function() {
+          if (isLoading) {
+            setLoadingState(false);
+            showErrorMessage('Response timeout. Please try again.');
+          }
+        }, 30000);
+      } else {
+        hideLoadingMessage();
+        // Timeout'u temizle
+        if (loadingTimeout) {
+          clearTimeout(loadingTimeout);
+          loadingTimeout = null;
+        }
+      }
+    }
+
+    // Loading mesajını göster
+    function showLoadingMessage() {
+      var loadingMsg = document.createElement('div');
+      loadingMsg.className = 'message assistant loading-message';
+      loadingMsg.innerHTML = `
+        <div class="loading-content">
+          <div class="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <span class="loading-text">Generating response...</span>
+        </div>
+      `;
+      loadingMsg.id = 'loading-message';
+      chat.appendChild(loadingMsg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Loading mesajını gizle
+    function hideLoadingMessage() {
+      var loadingMsg = document.getElementById('loading-message');
+      if (loadingMsg) {
+        loadingMsg.remove();
+      }
+    }
+
+    // Hata mesajını göster
+    function showErrorMessage(message) {
+      var errorMsg = document.createElement('div');
+      errorMsg.className = 'message assistant error-message';
+      errorMsg.innerHTML = `
+        <div class="error-content">
+          <span class="error-text">⚠️ ${message}</span>
+        </div>
+      `;
+      chat.appendChild(errorMsg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Conversation history'yi yükle
+    function loadConversationHistory() {
+      if (vscode) {
+        vscode.postMessage({ command: 'getHistory' });
+      }
+    }
+
+    // Conversation history'yi temizle
+    function clearConversationHistory() {
+      conversationHistory = [];
+      chat.innerHTML = '';
+      
+      if (vscode) {
+        vscode.postMessage({ command: 'clearChat' });
+      }
+    }
+
+    // Mesajı history'ye ekle
+    function addMessageToHistory(role, content) {
+      conversationHistory.push({
+        role: role,
+        content: content,
+        timestamp: Date.now()
+      });
+    }
+
+    // Dosya içeriğini göster
+    function showFileContent(filePath, content) {
+      var fileMsg = document.createElement('div');
+      fileMsg.className = 'message assistant file-content';
+      fileMsg.innerHTML = `
+        <div class="file-header">
+          <span class="file-name">📄 ${filePath}</span>
+          <button class="copy-file-btn" onclick="copyToClipboard('${content.replace(/'/g, "\\'")}')">Kopyala</button>
+        </div>
+        <pre><code class="language-plaintext">${content}</code></pre>
+      `;
+      chat.appendChild(fileMsg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Dosya ağacını göster
+    function showFileTree(tree) {
+      var treeMsg = document.createElement('div');
+      treeMsg.className = 'message assistant file-tree';
+      treeMsg.innerHTML = `
+        <div class="file-header">
+          <span class="file-name">📁 Proje Yapısı</span>
+        </div>
+        <pre><code class="language-plaintext">${tree}</code></pre>
+      `;
+      chat.appendChild(treeMsg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Proje dosyalarını göster
+    function showProjectFiles(files) {
+      var filesMsg = document.createElement('div');
+      filesMsg.className = 'message assistant project-files';
+      filesMsg.innerHTML = `
+        <div class="file-header">
+          <span class="file-name">📋 Proje Dosyaları (${files.length})</span>
+        </div>
+        <div class="files-list">
+          ${files.map(file => `<div class="file-item">📄 ${file}</div>`).join('')}
+        </div>
+      `;
+      chat.appendChild(filesMsg);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Dosya bildirimi göster
+    function showFileNotification(message, type = 'success') {
+      var notification = document.createElement('div');
+      notification.className = `file-notification ${type}`;
+      notification.textContent = message;
+      chat.appendChild(notification);
+      chat.scrollTop = chat.scrollHeight;
+      
+      // 5 saniye sonra kaldır
+      setTimeout(() => {
+        notification.remove();
+      }, 5000);
+    }
+
+    // Kopyalama fonksiyonu
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showFileNotification('✅ Kopyalandı!');
+      }).catch(() => {
+        showFileNotification('❌ Kopyalama başarısız', 'error');
+      });
+    }
+
+    // Conversation history'yi UI'da göster
+    function displayConversationHistory(history) {
+      // Chat'i temizle
+      chat.innerHTML = '';
+      
+      // Her mesajı UI'da göster
+      history.forEach(function(msg) {
+        if (msg.role === 'user') {
+          // Kullanıcı mesajı
+          var userMsg = document.createElement('div');
+          userMsg.className = 'message user';
+          userMsg.textContent = msg.content;
+          chat.appendChild(userMsg);
+        } else if (msg.role === 'assistant') {
+          // Asistan mesajı
+          var botMsg = document.createElement('div');
+          botMsg.className = 'message assistant';
+          var mdBody = document.createElement('span');
+          mdBody.className = 'markdown-body';
+          
+          // Markdown render et
+          if (window.marked) {
+            mdBody.innerHTML = window.marked.parse(msg.content, {
+              highlight: function(code, lang) {
+                if (lang && window.hljs.getLanguage(lang)) {
+                  return window.hljs.highlight(code, { language: lang }).value;
+                }
+                return window.hljs.highlightAuto(code).value;
+              }
+            });
+            
+            // Kod bloklarına kopyalama butonu ekle
+            mdBody.querySelectorAll('pre code').forEach(function(block) {
+              var pre = block.parentElement;
+              if (pre) {
+                var btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.textContent = 'Kopyala';
+                btn.onclick = function(e) {
+                  e.preventDefault();
+                  navigator.clipboard.writeText(block.textContent);
+                  btn.textContent = 'Kopyalandı!';
+                  setTimeout(function() { btn.textContent = 'Kopyala'; }, 1200);
+                };
+                pre.style.position = 'relative';
+                pre.appendChild(btn);
+              }
+            });
+          } else {
+            mdBody.textContent = msg.content;
+          }
+          
+          botMsg.appendChild(mdBody);
+          chat.appendChild(botMsg);
+        }
+      });
+      
+      // Syntax highlighting'i yenile
+      if (window.hljs) {
+        window.hljs.highlightAll();
+      }
+      
+      // Chat'i en alta kaydır
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Mesaj gönderme fonksiyonu
+    function sendMessage() {
+      if (!input || !chat || !vscode) {
+        return;
+      }
+
+      var value = input.value.trim();
+      if (!value) return;
+      
+      // Eğer zaten loading durumundaysa, yeni mesaj gönderme
+      if (isLoading) {
+        return;
+      }
+      
+      // Loading state'ini aktif et
+      setLoadingState(true);
+      
+      // Kullanıcı mesajını ekle
+      var userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.textContent = value;
+      chat.appendChild(userMsg);
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+      
+      // Mesajı history'ye ekle
+      addMessageToHistory('user', value);
+      
+      // VSCode'a mesaj gönder
+      try {
+        vscode.postMessage({ command: 'sendPrompt', text: value });
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setLoadingState(false); // Hata durumunda loading'i kapat
+      }
+    }
+
+    // VSCode'dan gelen mesajları dinle
+    window.addEventListener('message', function(event) {
+      const message = event.data;
+      
+      switch (message.command) {
+        case 'addResponse':
+          // Loading state'ini kapat
+          setLoadingState(false);
+          
+          // Asistan mesajını ekle
+          var botMsg = document.createElement('div');
+          botMsg.className = 'message assistant';
+          var mdBody = document.createElement('span');
+          mdBody.className = 'markdown-body';
+          
+          if (message.html) {
+            // Extension'dan gelen render edilmiş HTML
+            mdBody.innerHTML = message.html;
+          } else if (message.text) {
+            // Ham markdown metni - webview tarafında render et
+            if (window.marked) {
+              mdBody.innerHTML = window.marked.parse(message.text, {
+                highlight: function(code, lang) {
+                  if (lang && window.hljs.getLanguage(lang)) {
+                    return window.hljs.highlight(code, { language: lang }).value;
+                  }
+                  return window.hljs.highlightAuto(code).value;
+                }
+              });
+              
+              // Kod bloklarına kopyalama butonu ekle
+              mdBody.querySelectorAll('pre code').forEach(function(block) {
+                var pre = block.parentElement;
+                if (pre) {
+                  var btn = document.createElement('button');
+                  btn.className = 'copy-btn';
+                  btn.textContent = 'Kopyala';
+                  btn.onclick = function(e) {
+                    e.preventDefault();
+                    navigator.clipboard.writeText(block.textContent);
+                    btn.textContent = 'Kopyalandı!';
+                    setTimeout(function() { btn.textContent = 'Kopyala'; }, 1200);
+                  };
+                  pre.style.position = 'relative';
+                  pre.appendChild(btn);
+                }
+              });
+            } else {
+              mdBody.textContent = message.text;
+            }
+          }
+          
+          botMsg.appendChild(mdBody);
+          chat.appendChild(botMsg);
+          
+          // Asistan mesajını history'ye ekle
+          if (message.html) {
+            // HTML'den text çıkar (basit yöntem)
+            var tempDiv = document.createElement('div');
+            tempDiv.innerHTML = message.html;
+            addMessageToHistory('assistant', tempDiv.textContent || tempDiv.innerText || '');
+          } else if (message.text) {
+            addMessageToHistory('assistant', message.text);
+          }
+          
+          // Syntax highlighting'i yenile
+          if (window.hljs) {
+            window.hljs.highlightAll();
+          }
+          chat.scrollTop = chat.scrollHeight;
+          break;
+          
+        case 'historyLoaded':
+          // Conversation history'yi yükle
+          conversationHistory = message.history || [];
+          
+          // Eğer history varsa, UI'da göster
+          if (conversationHistory.length > 0) {
+            displayConversationHistory(conversationHistory);
+          }
+          break;
+          
+        case 'chatCleared':
+          // Chat temizlendi
+          conversationHistory = [];
+          break;
+          
+        case 'fileContent':
+          // Dosya içeriği alındı
+          showFileContent(message.filePath, message.content);
+          break;
+          
+        case 'fileWritten':
+          // Dosya yazıldı
+          showFileNotification('✅ Dosya başarıyla yazıldı: ' + message.filePath);
+          break;
+          
+        case 'fileTree':
+          // Dosya ağacı alındı
+          showFileTree(message.tree);
+          break;
+          
+        case 'projectFiles':
+          // Proje dosyaları alındı
+          showProjectFiles(message.files);
+          break;
+          
+        case 'fileError':
+          // Dosya hatası
+          showFileNotification('❌ Hata: ' + message.error, 'error');
+          break;
+      }
+    });
+
+    // Sayfa yüklendiğinde initialize et
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeWebview);
+    } else {
+      initializeWebview();
+    }
+  </script>
+</body>
+</html> 
