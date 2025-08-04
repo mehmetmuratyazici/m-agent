@@ -3,6 +3,7 @@ import { askGemini, clearConversationHistory, getConversationHistory, restoreCon
 import { marked } from 'marked';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 
 // Dosya işlemleri için yardımcı fonksiyonlar
 async function getProjectFiles(): Promise<string[]> {
@@ -84,6 +85,66 @@ async function buildFileTree(dirPath: string, indent: string): Promise<string> {
   }
   
   return tree;
+}
+
+// Resim işleme fonksiyonları
+async function saveImageToProject(imageData: string, context: vscode.ExtensionContext): Promise<string> {
+  try {
+    // Base64'ten binary'e çevir
+    const base64Data = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    
+    // Resim formatını belirle
+    const format = imageData.match(/data:image\/([a-z]+);base64/)?.[1] || 'png';
+    const extension = format === 'jpeg' ? 'jpg' : format;
+    
+    // Benzersiz dosya adı oluştur
+    const timestamp = Date.now();
+    const randomId = crypto.randomBytes(8).toString('hex');
+    const fileName = `uploaded_image_${timestamp}_${randomId}.${extension}`;
+    
+    // Proje içinde images klasörü oluştur
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    let imagesDir: string;
+    
+    if (workspaceFolders && workspaceFolders.length > 0) {
+      imagesDir = path.join(workspaceFolders[0].uri.fsPath, 'images');
+    } else {
+      // Workspace yoksa extension storage'da sakla
+      imagesDir = path.join(context.globalStorageUri.fsPath, 'images');
+    }
+    
+    // Dizin yoksa oluştur
+    if (!fs.existsSync(imagesDir)) {
+      await fs.promises.mkdir(imagesDir, { recursive: true });
+    }
+    
+    const imagePath = path.join(imagesDir, fileName);
+    await fs.promises.writeFile(imagePath, imageBuffer);
+    
+    return imagePath;
+  } catch (error) {
+    throw new Error(`Resim kaydedilemedi: ${error}`);
+  }
+}
+
+async function encodeImageToBase64(imagePath: string): Promise<string> {
+  try {
+    const imageBuffer = await fs.promises.readFile(imagePath);
+    const base64 = imageBuffer.toString('base64');
+    
+    // Resim formatını belirle
+    const ext = path.extname(imagePath).toLowerCase();
+    let mimeType = 'image/png';
+    
+    if (ext === '.jpg' || ext === '.jpeg') mimeType = 'image/jpeg';
+    else if (ext === '.gif') mimeType = 'image/gif';
+    else if (ext === '.webp') mimeType = 'image/webp';
+    
+    return `data:${mimeType};base64,${base64}`;
+  } catch (error) {
+    throw new Error(`Resim encode edilemedi: ${error}`);
+  }
 }
 
 // Conversation history'yi kaydetme ve yükleme fonksiyonları
@@ -320,6 +381,18 @@ class AIWebviewProvider implements vscode.WebviewViewProvider {
         try {
           // Proje bilgilerini AI'ya gönder
           let enhancedPrompt = message.text;
+          let imageData: string | undefined;
+          
+          // Resim varsa işle
+          if (message.imageData) {
+            try {
+              const imagePath = await saveImageToProject(message.imageData, this.context);
+              imageData = message.imageData;
+              enhancedPrompt += `\n\n📷 **Yüklenen resim:** ${path.basename(imagePath)}`;
+            } catch (error) {
+              console.error('Resim kaydedilemedi:', error);
+            }
+          }
           
           // Eğer prompt dosya işlemleri ile ilgiliyse, proje bilgilerini ekle
           if (message.text.toLowerCase().includes('dosya') || 
@@ -405,10 +478,10 @@ export function sum(a, b) {
 `;
           }
           
-          const response = await askGemini(enhancedPrompt);
-          
-          // AI yanıtını işle ve dosya işlemlerini gerçekleştir
-          const processedResponse = await processAIResponse(response, webviewView);
+                      const response = await askGemini(enhancedPrompt, message.text, imageData);
+            
+            // AI yanıtını işle ve dosya işlemlerini gerçekleştir
+            const processedResponse = await processAIResponse(response, webviewView);
           const html = marked(processedResponse);
           webviewView.webview.postMessage({ command: 'addResponse', html: html });
           

@@ -87,7 +87,7 @@ export async function restoreConversationHistory(history: ChatMessage[]): Promis
   }
 }
 
-export async function askGemini(prompt: string, originalUserMessage?: string): Promise<string> {
+export async function askGemini(prompt: string, originalUserMessage?: string, imageData?: string): Promise<string> {
   try {
     const session = initializeChatSession();
     
@@ -95,8 +95,21 @@ export async function askGemini(prompt: string, originalUserMessage?: string): P
     const messageToAdd = originalUserMessage || prompt;
     addToHistory('user', messageToAdd);
     
+    // Prepare message parts
+    const messageParts: any[] = [{ text: prompt }];
+    
+    // Add image if provided
+    if (imageData) {
+      messageParts.push({
+        inlineData: {
+          mimeType: imageData.match(/data:([^;]+);base64/)?.[1] || 'image/png',
+          data: imageData.replace(/^data:[^;]+;base64,/, '')
+        }
+      });
+    }
+    
     // Send message to chat session
-    const result = await session.sendMessage(prompt);
+    const result = await session.sendMessage(messageParts);
     const response = result.response;
     const text = response.text();
     
