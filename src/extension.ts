@@ -299,7 +299,10 @@ async function processAIResponse(response: string, webviewView: vscode.WebviewVi
         // Dosyayı oku
         const content = await readFileContent(fullPath);
         
-        // Dosya içeriğini webview'a gönder
+        // Dosya içeriğini AI yanıtına ekle
+        processedResponse += `\n\n📄 **Dosya içeriği:** \`${relativePath}\`\n\`\`\`\n${content}\n\`\`\``;
+        
+        // Dosya içeriğini webview'a da gönder
         webviewView.webview.postMessage({ 
           command: 'fileContent', 
           filePath: relativePath, 
@@ -407,7 +410,9 @@ class AIWebviewProvider implements vscode.WebviewViewProvider {
               message.text.toLowerCase().includes('make') ||
               message.text.toLowerCase().includes('app') ||
               message.text.toLowerCase().includes('uygulama') ||
-              message.text.toLowerCase().includes('revize')) {
+              message.text.toLowerCase().includes('revize') ||
+              message.text.toLowerCase().includes('düzenle') ||
+              message.text.toLowerCase().includes('edit')) {
             
             const fileTree = await getFileTree();
  enhancedPrompt = `Proje yapısı:
@@ -447,11 +452,11 @@ Aşağıdaki 4 işlem türünden istediğin kadarını kullanabilirsin. Her dosy
 
 - ✅ Cevap **birden fazla kod bloğu** içerebilir. Her dosya işlemi için ayrı kod bloğu kullan.
 - 🧾 Her blok yukarıdaki 4 formatta biri ile başlamalı (\`update:\`, \`create:\`, \`delete:\`, \`read:\`).
-- ❌ Kod bloğu DIŞINDA hiçbir açıklama, yorum, selamlama veya metin yazma.
+- ✅ Kod bloğu dışında açıklama yapabilirsin, ancak dosya işlemleri için mutlaka kod bloğu kullan.
 - ⚠️ Kod bloğu içeriği yalnızca işlemle ilgili olmalı.
 - 🧪 Dosya yolları tam ve geçerli olmalı (\`src/...\` gibi).
 - 🧹 Kod bloğu etiketleri ve içeriği arasında boşluk bırakma (örnek: \`\`\`update:src/index.js\`).
-
+- Sana bir resim dosyası veya bir url verildiyse onu detaylıca incele ve onun ile ilgili istenileni algılayıp yerine getir (örnek: bir url verildi ve onu aynısı yap dene bilir veya url verilir buradaki tüm bilgileri tara ve o kapsamda benim çözümüme cevap ver denebilir. ) bu kısım aşırı kritik .
 ---
 
 ## 🎯 Örnek – Çoklu İşlem Cevabı:
@@ -479,9 +484,15 @@ export function sum(a, b) {
           }
           
                       const response = await askGemini(enhancedPrompt, message.text, imageData);
-            
-            // AI yanıtını işle ve dosya işlemlerini gerçekleştir
-            const processedResponse = await processAIResponse(response, webviewView);
+          
+          console.log('AI Response:', response);
+          console.log('Response length:', response.length);
+          
+          // AI yanıtını işle ve dosya işlemlerini gerçekleştir
+          const processedResponse = await processAIResponse(response, webviewView);
+          
+          console.log('Processed Response:', processedResponse);
+          console.log('Processed Response length:', processedResponse.length);
           const html = marked(processedResponse);
           webviewView.webview.postMessage({ command: 'addResponse', html: html });
           

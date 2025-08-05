@@ -67,6 +67,98 @@
       background: #23272e;
       color: #e5e5e5;
     }
+
+    /* Welcome message styles */
+    .welcome-message {
+      background: linear-gradient(135deg, #1c2128 0%, #2d3748 100%) !important;
+      border-left: 4px solid #3182ce !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .welcome-content {
+      max-width: 100%;
+    }
+
+    .welcome-header h2 {
+      color: #63b3ed;
+      margin: 0 0 12px 0;
+      font-size: 1.5em;
+      font-weight: 600;
+    }
+
+    .welcome-header p {
+      color: #e2e8f0;
+      margin: 0 0 20px 0;
+      font-size: 1.1em;
+      line-height: 1.6;
+    }
+
+    .welcome-features h3,
+    .welcome-examples h3 {
+      color: #68d391;
+      margin: 16px 0 12px 0;
+      font-size: 1.2em;
+      font-weight: 600;
+    }
+
+    .welcome-features ul {
+      margin: 0 0 20px 0;
+      padding-left: 20px;
+    }
+
+    .welcome-features li {
+      margin: 8px 0;
+      color: #e2e8f0;
+      line-height: 1.5;
+    }
+
+    .welcome-features strong {
+      color: #fbb6ce;
+    }
+
+    .example-queries {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 12px 0 20px 0;
+    }
+
+    .example-btn {
+      background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .example-btn:hover {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .example-btn:active {
+      transform: translateY(0);
+    }
+
+    .welcome-tip {
+      background: rgba(68, 211, 145, 0.1);
+      border: 1px solid rgba(68, 211, 145, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 16px;
+    }
+
+    .welcome-tip p {
+      margin: 0;
+      color: #68d391;
+      font-size: 0.95em;
+    }
     .message .markdown-body {
       background: none;
       color: inherit;
@@ -434,6 +526,49 @@
     .file-notification.error {
       background: #dc3545;
     }
+
+    /* Paste notification styles */
+    .paste-notification {
+      position: relative;
+      margin: 8px 0;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9em;
+      z-index: 1000;
+      animation: slideInFromTop 0.3s ease-out;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .paste-notification.success {
+      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+      border-left: 4px solid #155724;
+    }
+
+    .paste-notification-content {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .paste-icon {
+      font-size: 1.2em;
+    }
+
+    .paste-text {
+      font-weight: 500;
+    }
+
+    @keyframes slideInFromTop {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
     
     @keyframes slideIn {
       from {
@@ -474,7 +609,7 @@
     </div>
     
   <form class="input-bar" id="input-form">
-      <textarea id="user-input" placeholder="Plan, search, build anything" autocomplete="off" rows="1"></textarea>
+      <textarea id="user-input" placeholder="Plan, search, build anything... (📸 Ekran resmi yapıştırabilirsiniz)" autocomplete="off" rows="1"></textarea>
       <div class="input-buttons">
         <button id="imageBtn" type="button" title="Resim Ekle">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -538,6 +673,7 @@
       if (input) {
         input.addEventListener('keypress', handleKeyPress);
         input.addEventListener('input', adjustTextareaHeight);
+        input.addEventListener('paste', handlePaste);
       }
       
       if (clearChatBtn) {
@@ -560,11 +696,14 @@
       
       // New Chat butonu için event listener
       var newChatBtn = document.querySelector('.new-chat-btn');
+      debugger;
       if (newChatBtn) {
         newChatBtn.addEventListener('click', function() {
-          if (confirm('Are you sure you want to start a new chat?')) {
+          console.log('New chat button clicked');
+          //if (confirm('Are you sure you want to start a new chat?')) {
+            console.log('New chat confirmed');
             clearConversationHistory();
-          }
+          //}
         });
       }
 
@@ -577,6 +716,50 @@
           vscode.postMessage({ command: 'getHistory' });
         }
       }, 500);
+
+      // Eğer 2 saniye içinde history yüklenmezse hoş geldin mesajını göster
+      setTimeout(() => {
+        if (chat.children.length === 0) {
+          addWelcomeMessage();
+        }
+      }, 2000);
+    }
+
+    // Clipboard'dan resim yapıştırma handler
+    function handlePaste(e) {
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      let hasImage = false;
+      
+      // Önce resim var mı kontrol et
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          hasImage = true;
+          break;
+        }
+      }
+      
+      // Eğer resim varsa, paste işlemini engelle ve resmi işle
+      if (hasImage) {
+        e.preventDefault(); // Varsayılan paste işlemini engelle
+        
+        for (let item of items) {
+          if (item.type.indexOf('image') !== -1) {
+            const file = item.getAsFile();
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = function(e) {
+                selectedImage = e.target.result;
+                showImagePreview();
+                
+                // Kullanıcıya bildirim göster
+                showPasteNotification('📸 Ekran resmi başarıyla eklendi!');
+              };
+              reader.readAsDataURL(file);
+            }
+            break; // İlk resmi bulduktan sonra döngüden çık
+          }
+        }
+      }
     }
 
     // Resim seçme handler
@@ -751,8 +934,77 @@
       conversationHistory = [];
       chat.innerHTML = '';
       
+      // Hoş geldin mesajını ekle
+      addWelcomeMessage();
+      
       if (vscode) {
         vscode.postMessage({ command: 'clearChat' });
+      }
+    }
+
+    // Hoş geldin mesajını ekleme fonksiyonu
+    function addWelcomeMessage() {
+      const welcomeMessage = document.createElement('div');
+      welcomeMessage.className = 'message assistant welcome-message';
+      welcomeMessage.innerHTML = `
+        <div class="welcome-content">
+          <div class="welcome-header">
+            <h2>🤖 AI Asistan'a Hoş Geldiniz!</h2>
+            <p>Size kod yazma, hata ayıklama ve proje geliştirme konularında yardımcı olmaktan mutluluk duyarım.</p>
+          </div>
+          
+          <div class="welcome-features">
+            <h3>🚀 Neler yapabilirim:</h3>
+            <ul>
+              <li><strong>💻 Kod Yazma:</strong> Yeni kod örnekleri oluşturma ve mevcut kodu iyileştirme</li>
+              <li><strong>🔍 Hata Ayıklama:</strong> Kod hatalarını bulma ve çözüm önerileri</li>
+              <li><strong>📚 Kod Açıklama:</strong> Karmaşık kod bloklarını anlaşılır şekilde açıklama</li>
+              <li><strong>🛠️ Refactoring:</strong> Kodu daha temiz ve verimli hale getirme</li>
+              <li><strong>📖 Dokümantasyon:</strong> README dosyaları ve kod yorumları yazma</li>
+              <li><strong>🧪 Test Yazma:</strong> Unit testler ve entegrasyon testleri oluşturma</li>
+            </ul>
+          </div>
+          
+          <div class="welcome-examples">
+            <h3>💡 Örnek Sorular:</h3>
+            <div class="example-queries">
+              <button class="example-btn" onclick="askExample('Bu React component\'ini optimize eder misin?')">
+                "Bu React component'ini optimize eder misin?"
+              </button>
+              <button class="example-btn" onclick="askExample('Bu JavaScript kodundaki hatayı bulur musun?')">
+                "Bu JavaScript kodundaki hatayı bulur musun?"
+              </button>
+              <button class="example-btn" onclick="askExample('Bu fonksiyon için unit test yazar mısın?')">
+                "Bu fonksiyon için unit test yazar mısın?"
+              </button>
+              <button class="example-btn" onclick="askExample('Bu algoritmanın zaman karmaşıklığını analiz eder misin?')">
+                "Bu algoritmanın zaman karmaşıklığını analiz eder misin?"
+              </button>
+            </div>
+          </div>
+          
+          <div class="welcome-tip">
+            <p><strong>💡 İpucu:</strong> Kod bloklarını paylaşmak için dosyaları sürükleyip bırakabilir veya dosya yolunu yazabilirsiniz.</p>
+            <p><strong>📸 Ekran Resmi:</strong> Ekran resmi aldıktan sonra Command+C ile kopyalayıp bu alana yapıştırabilirsiniz!</p>
+          </div>
+        </div>
+      `;
+      
+      chat.appendChild(welcomeMessage);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Örnek soru sorma fonksiyonu
+    function askExample(question) {
+      // Input alanına soruyu yaz
+      const input = document.getElementById('user-input');
+      if (input) {
+        input.value = question;
+        input.focus();
+        // Textarea yüksekliğini ayarla
+        if (typeof adjustTextareaHeight === 'function') {
+          adjustTextareaHeight();
+        }
       }
     }
 
@@ -822,6 +1074,31 @@
       setTimeout(() => {
         notification.remove();
       }, 5000);
+    }
+
+    // Paste bildirimi göster
+    function showPasteNotification(message) {
+      var notification = document.createElement('div');
+      notification.className = 'paste-notification success';
+      notification.innerHTML = `
+        <div class="paste-notification-content">
+          <span class="paste-icon">📸</span>
+          <span class="paste-text">${message}</span>
+        </div>
+      `;
+      
+      // Notification'ı input alanının üstüne ekle
+      const inputContainer = document.querySelector('.input-bar');
+      if (inputContainer && inputContainer.parentNode) {
+        inputContainer.parentNode.insertBefore(notification, inputContainer);
+      }
+      
+      // 3 saniye sonra kaldır
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 3000);
     }
 
     // Kopyalama fonksiyonu
@@ -1025,6 +1302,9 @@
           // Eğer history varsa, UI'da göster
           if (conversationHistory.length > 0) {
             displayConversationHistory(conversationHistory);
+          } else {
+            // History yoksa hoş geldin mesajını göster
+            addWelcomeMessage();
           }
           break;
           
