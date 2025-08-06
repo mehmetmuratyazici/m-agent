@@ -4,6 +4,7 @@ import { marked } from 'marked';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
+import { initializeProviderManager } from './AIProviderManager';
 
 // Dosya işlemleri için yardımcı fonksiyonlar
 async function getProjectFiles(): Promise<string[]> {
@@ -321,6 +322,7 @@ async function processAIResponse(response: string, webviewView: vscode.WebviewVi
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  initializeProviderManager(context); // AIProviderManager'ı başlat
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       'aiSidebarView',
@@ -376,6 +378,18 @@ class AIWebviewProvider implements vscode.WebviewViewProvider {
       .replace('{{scriptUri}}', scriptUri.path)
       .replace('{{styleUri}}', styleUri.path)
       .replace('{{logoUri}}', logoUri.path);
+
+    // Webview başlatıldığında mevcut provider'ı gönder
+    const currentProvider = getCurrentProvider();
+    webviewView.webview.postMessage({ 
+      command: 'currentProvider', 
+      provider: currentProvider,
+      displayName: getProviderDisplayName(currentProvider),
+      availableProviders: getAvailableProviders().map(p => ({
+        value: p,
+        displayName: getProviderDisplayName(p)
+      }))
+    });
 
 
     
@@ -582,12 +596,9 @@ export function sum(a, b) {
           });
         }
       } else if (message.command === 'changeProvider') {
-        // AI provider değiştirme
+        // AI provider değiştirme - sadece provider'ı değiştir, chat'i temizleme
         const newProvider = message.provider as AIProvider;
         setAIProvider(newProvider);
-        
-        // Provider değiştiğinde conversation history'yi temizle
-        clearConversationHistory();
         
         // Webview'e provider bilgisini gönder
         webviewView.webview.postMessage({ 

@@ -104,7 +104,7 @@ export async function restoreConversationHistory(history: ChatMessage[]): Promis
     
     // History'yi chat formatına çevir
     const chatHistory = history.map(msg => ({
-      role: msg.role,
+      role: msg.role === 'assistant' ? 'model' : msg.role,
       parts: [{ text: msg.content }]
     }));
     

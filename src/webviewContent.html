@@ -680,6 +680,10 @@
             <span class="provider-option-icon">🧠</span>
             <span class="provider-option-text">DeepSeek</span>
           </div>
+          <div class="provider-option" data-provider="claude">
+            <span class="provider-option-icon">🧠</span>
+            <span class="provider-option-text">Claude</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1154,6 +1158,10 @@
             providerIcon.textContent = '🧠';
             providerText.textContent = 'DeepSeek';
             break;
+          case 'claude':
+            providerIcon.textContent = '🧠';
+            providerText.textContent = 'Claude';
+            break;
         }
       }
 
@@ -1277,10 +1285,6 @@
       if (inputContainer && inputContainer.parentNode) {
         inputContainer.parentNode.insertBefore(notification, inputContainer);
       }
-      
-      // Chat'i temizle ve hoş geldin mesajını göster
-      chat.innerHTML = '';
-      addWelcomeMessage();
       
       // 3 saniye sonra kaldır
       setTimeout(() => {

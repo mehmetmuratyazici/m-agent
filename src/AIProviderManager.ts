@@ -4,8 +4,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { askGemini, clearConversationHistory as clearGeminiHistory, getConversationHistory as getGeminiHistory, restoreConversationHistory as restoreGeminiHistory, ChatMessage as GeminiChatMessage } from './GeminiAIClient';
 import { askDeepSeek, clearConversationHistory as clearDeepSeekHistory, getConversationHistory as getDeepSeekHistory, restoreConversationHistory as restoreDeepSeekHistory, ChatMessage as DeepSeekChatMessage } from './DeepSeekAIClient';
+import { askClaude, clearConversationHistory as clearClaudeHistory, getConversationHistory as getClaudeHistory, restoreConversationHistory as restoreClaudeHistory, ChatMessage as ClaudeChatMessage } from './ClaudeAIClient';
 
-export type AIProvider = 'gemini' | 'deepseek';
+export type AIProvider = 'gemini' | 'deepseek' | 'claude';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -14,9 +15,23 @@ export interface ChatMessage {
 }
 
 let currentProvider: AIProvider = 'gemini';
+let context: vscode.ExtensionContext | null = null;
+
+export function initializeProviderManager(extensionContext: vscode.ExtensionContext) {
+  context = extensionContext;
+  // Kaydedilmiş provider'ı yükle
+  const savedProvider = context.globalState.get<AIProvider>('currentAIProvider');
+  if (savedProvider && ['gemini', 'deepseek', 'claude'].includes(savedProvider)) {
+    currentProvider = savedProvider;
+  }
+}
 
 export function setAIProvider(provider: AIProvider) {
   currentProvider = provider;
+  // Provider'ı kalıcı olarak kaydet
+  if (context) {
+    context.globalState.update('currentAIProvider', provider);
+  }
 }
 
 export function getCurrentProvider(): AIProvider {
@@ -29,6 +44,8 @@ export function getProviderDisplayName(provider: AIProvider): string {
       return '🤖 Gemini';
     case 'deepseek':
       return '🧠 DeepSeek';
+    case 'claude':
+      return '🧠 Claude';
     default:
       return '🤖 AI';
   }
@@ -39,6 +56,8 @@ export function getProviderIcon(provider: AIProvider): string {
     case 'gemini':
       return '🤖';
     case 'deepseek':
+      return '🧠';
+    case 'claude':
       return '🧠';
     default:
       return '🤖';
@@ -51,9 +70,9 @@ export async function askAI(prompt: string, originalUserMessage?: string, imageD
       case 'gemini':
         return await askGemini(prompt, originalUserMessage, imageData);
       case 'deepseek':
-        // DeepSeek doesn't need the originalUserMessage parameter like Gemini
-        const messageToUse = originalUserMessage || prompt;
-        return await askDeepSeek(messageToUse, imageData);
+        return await askDeepSeek(prompt, originalUserMessage, imageData);
+      case 'claude':
+        return await askClaude(prompt, originalUserMessage, imageData);
       default:
         throw new Error(`Bilinmeyen AI provider: ${currentProvider}`);
     }
@@ -71,6 +90,9 @@ export function clearConversationHistory() {
     case 'deepseek':
       clearDeepSeekHistory();
       break;
+    case 'claude':
+      clearClaudeHistory();
+      break;
   }
 }
 
@@ -80,6 +102,8 @@ export function getConversationHistory(): ChatMessage[] {
       return getGeminiHistory();
     case 'deepseek':
       return getDeepSeekHistory();
+    case 'claude':
+      return getClaudeHistory();
     default:
       return [];
   }
@@ -93,11 +117,14 @@ export function restoreConversationHistory(history: ChatMessage[]) {
     case 'deepseek':
       restoreDeepSeekHistory(history as DeepSeekChatMessage[]);
       break;
+    case 'claude':
+      restoreClaudeHistory(history as ClaudeChatMessage[]);
+      break;
   }
 }
 
 export function getAvailableProviders(): AIProvider[] {
-  return ['gemini', 'deepseek'];
+  return ['gemini', 'deepseek', 'claude'];
 }
 
 export async function checkProviderAvailability(provider: AIProvider): Promise<boolean> {

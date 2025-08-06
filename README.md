@@ -1,12 +1,13 @@
 # AI Assistant - MMY Agent
 
-**Çok dilli AI destekli kod geliştirme asistanı** - Gemini ve DeepSeek AI provider'ları ile güçlendirilmiş, modern bir Visual Studio Code extension'ı.
+**Çok dilli AI destekli kod geliştirme asistanı** - Gemini, DeepSeek ve Claude AI provider'ları ile güçlendirilmiş, modern bir Visual Studio Code extension'ı.
 
 ## 🚀 Özellikler
 
 ### 🤖 Çoklu AI Provider Desteği
 - **Google Gemini**: Güçlü kod analizi ve öneriler
 - **DeepSeek**: Gelişmiş kod anlayışı ve optimizasyon
+- **Anthropic Claude**: Gelişmiş AI asistanı
 - Dinamik provider değiştirme özelliği
 - Her provider için ayrı conversation history
 
@@ -35,6 +36,7 @@
 - Visual Studio Code 1.102.0 veya üzeri
 - Google Gemini API anahtarı (Gemini kullanımı için)
 - DeepSeek API anahtarı (DeepSeek kullanımı için)
+- Anthropic Claude API anahtarı (Claude kullanımı için)
 
 ## ⚙️ Kurulum ve Konfigürasyon
 
@@ -48,11 +50,15 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 # DeepSeek API Key
 DEEPSEEK_API_KEY=your_deepseek_api_key_here
+
+# Anthropic Claude API Key
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
 ### API Anahtarları Alma:
 - **Gemini**: [Google AI Studio](https://makersuite.google.com/app/apikey) 
 - **DeepSeek**: [DeepSeek Platform](https://platform.deepseek.com/)
+- **Claude**: [Anthropic Console](https://console.anthropic.com/)
 
 ### Güvenlik:
 - `.env` dosyası `.gitignore`'a eklenmiştir
@@ -63,8 +69,8 @@ DEEPSEEK_API_KEY=your_deepseek_api_key_here
 
 ### AI Provider Seçimi
 1. Sol alttaki AI provider selector'a tıklayın
-2. Gemini (🤖) veya DeepSeek (🧠) seçin
-3. Provider değiştiğinde chat geçmişi otomatik temizlenir
+2. Gemini (🤖), DeepSeek (🧠) veya Claude (🧠) seçin
+3. Provider değiştiğinde chat geçmişi korunur
 
 ### Resim Gönderme
 **Yöntem 1 - Dosya Upload:**
@@ -95,6 +101,7 @@ Bu extension aşağıdaki environment variable'ları kullanır:
 
 - `GEMINI_API_KEY`: Google Gemini API anahtarı
 - `DEEPSEEK_API_KEY`: DeepSeek API anahtarı
+- `ANTHROPIC_API_KEY`: Anthropic Claude API anahtarı
 
 Bu değişkenler `.env` dosyasında tanımlanmalıdır.
 
