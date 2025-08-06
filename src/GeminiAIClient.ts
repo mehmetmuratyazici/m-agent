@@ -1,11 +1,45 @@
 // src/GeminiAIClient.ts
 
+import * as vscode from 'vscode';
 import dotenv from "dotenv";
 import { GoogleGenerativeAI, ChatSession } from "@google/generative-ai";
+import * as path from 'path';
+import * as fs from 'fs';
 
-dotenv.config();
+// .env dosyasını extension'ın kendi dizininden yükle
+let envPath = '';
+const extensionRoot = path.resolve(__dirname, '../../..'); // dist/src'den çıkıp extension root'a git
+envPath = path.join(extensionRoot, '.env');
 
-const genAI = new GoogleGenerativeAI("AIzaSyAA1fj2TiN-3Fcsbupg1uw0Q8h1rM-cS8Y");
+// Eğer bulunamazsa, alternatif yolları dene
+if (!fs.existsSync(envPath)) {
+  const alternativePaths = [
+    path.resolve(__dirname, '../../.env'), // dist'den çık
+    path.resolve(__dirname, '../.env'),    // src'den çık
+    path.resolve(process.cwd(), '.env'),   // current working directory
+  ];
+  
+  for (const altPath of alternativePaths) {
+    if (fs.existsSync(altPath)) {
+      envPath = altPath;
+      break;
+    }
+  }
+}
+
+if (fs.existsSync(envPath)) {
+  dotenv.config({ path: envPath });
+  console.log(`Loaded .env from: ${envPath}`);
+} else {
+  console.warn(`.env file not found. Tried paths: ${envPath}`);
+}
+
+const apiKey = process.env.GEMINI_API_KEY;
+if (!apiKey) {
+  throw new Error(`GEMINI_API_KEY environment variable is not set. Please check your .env file. Tried paths: ${envPath}`);
+}
+
+const genAI = new GoogleGenerativeAI(apiKey);
 
 // Conversation history interface
 export interface ChatMessage {

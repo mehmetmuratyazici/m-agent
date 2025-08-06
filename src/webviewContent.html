@@ -213,7 +213,7 @@
       align-items: center;
     }
     
-    .agent-status, .auto-mode {
+    .agent-status, .ai-provider-selector {
       display: flex;
       align-items: center;
       gap: 4px;
@@ -223,10 +223,75 @@
       padding: 4px 8px;
       border-radius: 4px;
       transition: background 0.2s;
+      position: relative;
     }
     
-    .agent-status:hover, .auto-mode:hover {
+    .agent-status:hover, .ai-provider-selector:hover {
       background: #21262d;
+    }
+
+    /* Provider Selector Styles */
+    .ai-provider-selector {
+      user-select: none;
+    }
+
+    .provider-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      margin-top: 4px;
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+      transition: all 0.2s ease;
+    }
+
+    .provider-dropdown.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .provider-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      color: #e5e5e5;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 8px;
+    }
+
+    .provider-option:hover {
+      background: #21262d;
+    }
+
+    .provider-option:first-child {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .provider-option:last-child {
+      border-radius: 0 0 6px 6px;
+    }
+
+    .provider-option.active {
+      background: #238636;
+      color: #fff;
+    }
+
+    .provider-option-icon {
+      font-size: 14px;
+    }
+
+    .provider-option-text {
+      font-weight: 500;
     }
     
     .infinity-icon {
@@ -602,9 +667,20 @@
         <span class="agent-text">Agent</span>
         <span class="caret">^</span>
       </div>
-      <div class="auto-mode">
-        <span class="auto-text">Auto</span>
+      <div class="ai-provider-selector" id="providerSelector">
+        <span class="provider-icon" id="providerIcon">🤖</span>
+        <span class="provider-text" id="providerText">Gemini</span>
         <span class="caret">^</span>
+        <div class="provider-dropdown" id="providerDropdown">
+          <div class="provider-option" data-provider="gemini">
+            <span class="provider-option-icon">🤖</span>
+            <span class="provider-option-text">Gemini</span>
+          </div>
+          <div class="provider-option" data-provider="deepseek">
+            <span class="provider-option-icon">🧠</span>
+            <span class="provider-option-text">DeepSeek</span>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -644,6 +720,7 @@
     var loadingTimeout = null; // Loading timeout
     var conversationHistory = []; // Conversation history
     var selectedImage = null; // Seçilen resim
+    var currentProvider = 'gemini'; // Mevcut AI provider
 
     // Sayfa yüklendiğinde çalışacak fonksiyon
     function initializeWebview() {
@@ -723,6 +800,14 @@
           addWelcomeMessage();
         }
       }, 2000);
+
+      // Provider selector event listeners
+      initializeProviderSelector();
+
+      // Provider bilgisini al
+      if (vscode) {
+        vscode.postMessage({ command: 'getCurrentProvider' });
+      }
     }
 
     // Clipboard'dan resim yapıştırma handler
@@ -986,6 +1071,7 @@
           <div class="welcome-tip">
             <p><strong>💡 İpucu:</strong> Kod bloklarını paylaşmak için dosyaları sürükleyip bırakabilir veya dosya yolunu yazabilirsiniz.</p>
             <p><strong>📸 Ekran Resmi:</strong> Ekran resmi aldıktan sonra Command+C ile kopyalayıp bu alana yapıştırabilirsiniz!</p>
+            <p><strong>🤖 AI Provider:</strong> Sol alttaki provider seçiciden Gemini veya DeepSeek arasında seçim yapabilirsiniz!</p>
           </div>
         </div>
       `;
@@ -1006,6 +1092,80 @@
           adjustTextareaHeight();
         }
       }
+    }
+
+    // Provider selector'ı initialize et
+    function initializeProviderSelector() {
+      const providerSelector = document.getElementById('providerSelector');
+      const providerDropdown = document.getElementById('providerDropdown');
+      const providerOptions = document.querySelectorAll('.provider-option');
+
+      if (providerSelector && providerDropdown) {
+        // Dropdown toggle
+        providerSelector.addEventListener('click', function(e) {
+          e.stopPropagation();
+          providerDropdown.classList.toggle('show');
+        });
+
+        // Provider seçimi
+        providerOptions.forEach(option => {
+          option.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const selectedProvider = this.getAttribute('data-provider');
+            changeProvider(selectedProvider);
+            providerDropdown.classList.remove('show');
+          });
+        });
+
+        // Dropdown'ı dışarı tıklayınca kapat
+        document.addEventListener('click', function() {
+          providerDropdown.classList.remove('show');
+        });
+      }
+    }
+
+    // Provider değiştir
+    function changeProvider(provider) {
+      currentProvider = provider;
+      updateProviderUI(provider);
+      
+      if (vscode) {
+        vscode.postMessage({ 
+          command: 'changeProvider', 
+          provider: provider 
+        });
+      }
+    }
+
+    // Provider UI'sını güncelle
+    function updateProviderUI(provider) {
+      const providerIcon = document.getElementById('providerIcon');
+      const providerText = document.getElementById('providerText');
+      const providerOptions = document.querySelectorAll('.provider-option');
+
+      // Icon ve text'i güncelle
+      if (providerIcon && providerText) {
+        switch (provider) {
+          case 'gemini':
+            providerIcon.textContent = '🤖';
+            providerText.textContent = 'Gemini';
+            break;
+          case 'deepseek':
+            providerIcon.textContent = '🧠';
+            providerText.textContent = 'DeepSeek';
+            break;
+        }
+      }
+
+      // Active option'ı güncelle
+      providerOptions.forEach(option => {
+        const optionProvider = option.getAttribute('data-provider');
+        if (optionProvider === provider) {
+          option.classList.add('active');
+        } else {
+          option.classList.remove('active');
+        }
+      });
     }
 
     // Mesajı history'ye ekle
@@ -1092,6 +1252,35 @@
       if (inputContainer && inputContainer.parentNode) {
         inputContainer.parentNode.insertBefore(notification, inputContainer);
       }
+      
+      // 3 saniye sonra kaldır
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 3000);
+    }
+
+    // Provider değişim bildirimi göster
+    function showProviderChangeNotification(providerDisplayName) {
+      var notification = document.createElement('div');
+      notification.className = 'paste-notification success';
+      notification.innerHTML = `
+        <div class="paste-notification-content">
+          <span class="paste-icon">🔄</span>
+          <span class="paste-text">AI Provider değiştirildi: ${providerDisplayName}</span>
+        </div>
+      `;
+      
+      // Notification'ı input alanının üstüne ekle
+      const inputContainer = document.querySelector('.input-bar');
+      if (inputContainer && inputContainer.parentNode) {
+        inputContainer.parentNode.insertBefore(notification, inputContainer);
+      }
+      
+      // Chat'i temizle ve hoş geldin mesajını göster
+      chat.innerHTML = '';
+      addWelcomeMessage();
       
       // 3 saniye sonra kaldır
       setTimeout(() => {
@@ -1336,6 +1525,21 @@
         case 'fileError':
           // Dosya hatası
           showFileNotification('❌ Hata: ' + message.error, 'error');
+          break;
+          
+        case 'currentProvider':
+          // Mevcut provider bilgisi alındı
+          currentProvider = message.provider;
+          updateProviderUI(message.provider);
+          break;
+          
+        case 'providerChanged':
+          // Provider değişti
+          currentProvider = message.provider;
+          updateProviderUI(message.provider);
+          
+          // Provider değiştiğinde bildirimi göster
+          showProviderChangeNotification(message.displayName);
           break;
       }
     });

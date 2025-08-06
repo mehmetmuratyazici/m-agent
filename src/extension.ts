@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { askGemini, clearConversationHistory, getConversationHistory, restoreConversationHistory, ChatMessage } from './GeminiAIClient';
+import { askAI, clearConversationHistory, getConversationHistory, restoreConversationHistory, ChatMessage, setAIProvider, getCurrentProvider, getProviderDisplayName, getAvailableProviders, checkProviderAvailability, AIProvider } from './AIProviderManager';
 import { marked } from 'marked';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -483,7 +483,7 @@ export function sum(a, b) {
 `;
           }
           
-                      const response = await askGemini(enhancedPrompt, message.text, imageData);
+                      const response = await askAI(enhancedPrompt, message.text, imageData);
           
           console.log('AI Response:', response);
           console.log('Response length:', response.length);
@@ -581,6 +581,32 @@ export function sum(a, b) {
             error: error instanceof Error ? error.message : 'Unknown error' 
           });
         }
+      } else if (message.command === 'changeProvider') {
+        // AI provider değiştirme
+        const newProvider = message.provider as AIProvider;
+        setAIProvider(newProvider);
+        
+        // Provider değiştiğinde conversation history'yi temizle
+        clearConversationHistory();
+        
+        // Webview'e provider bilgisini gönder
+        webviewView.webview.postMessage({ 
+          command: 'providerChanged', 
+          provider: newProvider,
+          displayName: getProviderDisplayName(newProvider)
+        });
+      } else if (message.command === 'getCurrentProvider') {
+        // Mevcut provider bilgisini gönder
+        const provider = getCurrentProvider();
+        webviewView.webview.postMessage({ 
+          command: 'currentProvider', 
+          provider: provider,
+          displayName: getProviderDisplayName(provider),
+          availableProviders: getAvailableProviders().map(p => ({
+            value: p,
+            displayName: getProviderDisplayName(p)
+          }))
+        });
       }
     });
   }

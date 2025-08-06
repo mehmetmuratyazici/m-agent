@@ -1,71 +1,142 @@
-# mmy-agent README
+# AI Assistant - MMY Agent
 
-This is the README for your extension "mmy-agent". After writing up a brief description, we recommend including the following sections.
+**Çok dilli AI destekli kod geliştirme asistanı** - Gemini ve DeepSeek AI provider'ları ile güçlendirilmiş, modern bir Visual Studio Code extension'ı.
 
-## Features
+## 🚀 Özellikler
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+### 🤖 Çoklu AI Provider Desteği
+- **Google Gemini**: Güçlü kod analizi ve öneriler
+- **DeepSeek**: Gelişmiş kod anlayışı ve optimizasyon
+- Dinamik provider değiştirme özelliği
+- Her provider için ayrı conversation history
 
-For example if there is an image subfolder under your extension project workspace:
+### 💬 Gelişmiş Chat Arayüzü
+- Modern, karanlık tema ile GitHub tarzı tasarım
+- Markdown desteği ile kod formatting
+- Syntax highlighting (highlight.js)
+- Kod blokları için tek tıkla kopyalama
+- Loading animasyonları ve durum göstergeleri
 
-\!\[feature X\]\(images/feature-x.png\)
+### 📸 Resim Desteği
+- **Dosya Upload**: Drag & drop veya dosya seçici ile resim ekleme
+- **Clipboard Paste**: Command+C ile kopyalanan ekran görüntülerini doğrudan yapıştırma
+- Resim önizleme ve kaldırma özelliği
+- Otomatik resim optimizasyonu
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### 🎨 Kullanıcı Dostu Özellikler
+- Hoş geldin ekranı ile interactive örnekler
+- Provider değişim bildirimleri
+- Chat geçmişi otomatik kaydetme
+- Conversation history temizleme
+- Responsive tasarım
 
-## Requirements
+## 📋 Gereksinimler
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+- Visual Studio Code 1.102.0 veya üzeri
+- Google Gemini API anahtarı (Gemini kullanımı için)
+- DeepSeek API anahtarı (DeepSeek kullanımı için)
 
-## Extension Settings
+## ⚙️ Kurulum ve Konfigürasyon
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+1. Extension'ı VS Code'da yükleyin
+2. Proje kökünde `.env` dosyası oluşturun ve API anahtarlarınızı ekleyin:
 
-For example:
+### .env Dosyası Konfigürasyonu:
+```env
+# Google Gemini API Key
+GEMINI_API_KEY=your_gemini_api_key_here
 
-This extension contributes the following settings:
+# DeepSeek API Key
+DEEPSEEK_API_KEY=your_deepseek_api_key_here
+```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+### API Anahtarları Alma:
+- **Gemini**: [Google AI Studio](https://makersuite.google.com/app/apikey) 
+- **DeepSeek**: [DeepSeek Platform](https://platform.deepseek.com/)
 
-## Known Issues
+### Güvenlik:
+- `.env` dosyası `.gitignore`'a eklenmiştir
+- API anahtarlarınız GitHub'a yüklenmeyecektir
+- Her geliştirici kendi `.env` dosyasını oluşturmalıdır
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## 📖 Kullanım
 
-## Release Notes
+### AI Provider Seçimi
+1. Sol alttaki AI provider selector'a tıklayın
+2. Gemini (🤖) veya DeepSeek (🧠) seçin
+3. Provider değiştiğinde chat geçmişi otomatik temizlenir
 
-Users appreciate release notes as you update your extension.
+### Resim Gönderme
+**Yöntem 1 - Dosya Upload:**
+- Resim butonuna (📷) tıklayın
+- Dosya seçin veya drag & drop yapın
 
-### 1.0.0
+**Yöntem 2 - Clipboard:**
+- Ekran görüntüsü alın (Command+Shift+4)
+- Command+C ile kopyalayın  
+- Chat input alanına Command+V ile yapıştırın
 
-Initial release of ...
+### Chat Kullanımı
+- Input alanına sorunuzu yazın
+- Enter tuşu veya Send butonu ile gönderin
+- Kod blokları için "Kopyala" butonunu kullanın
+- Chat temizlemek için 🗑️ butonuna tıklayın
 
-### 1.0.1
+## 🎯 Örnek Kullanım Senaryoları
 
-Fixed issue #.
+- **Kod İnceleme**: "Bu React component'ini optimize eder misin?"
+- **Hata Ayıklama**: "Bu JavaScript kodundaki hatayı bulur musun?"
+- **Test Yazma**: "Bu fonksiyon için unit test yazar mısın?"
+- **Ekran Görüntüsü Analizi**: Hata ekranı görüntüsünü yapıştırıp çözüm isteme
 
-### 1.1.0
+## 🔧 Environment Variables
 
-Added features X, Y, and Z.
+Bu extension aşağıdaki environment variable'ları kullanır:
+
+- `GEMINI_API_KEY`: Google Gemini API anahtarı
+- `DEEPSEEK_API_KEY`: DeepSeek API anahtarı
+
+Bu değişkenler `.env` dosyasında tanımlanmalıdır.
+
+## 🐛 Bilinen Sorunlar
+
+- DeepSeek'te görüntü analizi henüz tam desteklenmiyor
+- Çok büyük resimler upload süresi uzatabilir
+- İnternet bağlantısı gereklidir
+
+## 📝 Release Notes
+
+### 0.0.1 - İlk Sürüm
+
+**Yeni Özellikler:**
+- 🤖 Gemini ve DeepSeek dual provider desteği
+- 📸 Clipboard paste ile resim gönderme
+- 💬 Modern chat arayüzü
+- 🎨 Hoş geldin ekranı ve interactive örnekler
+- 📋 Conversation history yönetimi
+- 🔄 Dynamic provider switching
+
+**Teknik:**
+- TypeScript ile geliştirildi
+- Webpack ile optimize edildi
+- Modern ES6+ özellikleri kullandı
+
+## 🤝 Katkıda Bulunma
+
+1. Fork yapın
+2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
+3. Commit yapın (`git commit -m 'Add amazing feature'`)
+4. Push yapın (`git push origin feature/amazing-feature`)
+5. Pull Request açın
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır.
+
+## 📞 Destek
+
+Sorunlar için GitHub Issues kullanın veya direct iletişim kurun.
 
 ---
 
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**MMY Agent ile kodlama deneyiminizi bir üst seviyeye taşıyın! 🚀**

@@ -29,6 +29,21 @@
           "icon": "resources/ai-icon.svg"
         }
       ]
+    },
+    "configuration": {
+      "title": "AI Assistant Configuration",
+      "properties": {
+        "gemini.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google Gemini API anahtarı"
+        },
+        "deepseek.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "DeepSeek API anahtarı"
+        }
+      }
     }
   },
   "activationEvents": [
