@@ -207,7 +207,7 @@ async function processAIResponse(response: string, webviewView: vscode.WebviewVi
       }
       
       // Yeni proje klasörü oluştur
-      const projectName = 'ai-generated-project';
+      const projectName = 'new-app';
       workspaceRoot = path.join(homeDir, projectName);
       
       // Klasör yoksa oluştur
