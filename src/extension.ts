@@ -502,6 +502,9 @@ export function sum(a, b) {
           console.log('AI Response:', response);
           console.log('Response length:', response.length);
           
+          // Reload tetiklenmeden önce history'yi kaydet
+          await saveConversationHistory(this.context);
+
           // AI yanıtını işle ve dosya işlemlerini gerçekleştir
           const processedResponse = await processAIResponse(response, webviewView);
           

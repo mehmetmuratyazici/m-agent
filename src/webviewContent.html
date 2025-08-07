@@ -801,7 +801,7 @@
       // Eğer 2 saniye içinde history yüklenmezse hoş geldin mesajını göster
       setTimeout(() => {
         if (chat.children.length === 0) {
-          addWelcomeMessage();
+          //addWelcomeMessage();
         }
       }, 2000);
 
@@ -1020,6 +1020,7 @@
 
     // Conversation history'yi temizle
     function clearConversationHistory() {
+      console.log('Clearing conversation history');
       conversationHistory = [];
       chat.innerHTML = '';
       
@@ -1033,6 +1034,7 @@
 
     // Hoş geldin mesajını ekleme fonksiyonu
     function addWelcomeMessage() {
+      console.log('Adding welcome message');
       const welcomeMessage = document.createElement('div');
       welcomeMessage.className = 'message assistant welcome-message';
       welcomeMessage.innerHTML = `
@@ -1307,7 +1309,7 @@
     function displayConversationHistory(history) {
       // Chat'i temizle
       chat.innerHTML = '';
-      
+      console.log('Displaying conversation history:', history);
       // Her mesajı UI'da göster
       history.forEach(function(msg) {
         if (msg.role === 'user') {
@@ -1419,7 +1421,7 @@
     // VSCode'dan gelen mesajları dinle
     window.addEventListener('message', function(event) {
       const message = event.data;
-      
+      console.log('Received message from VSCode:', message);
       switch (message.command) {
         case 'addResponse':
           // Loading state'ini kapat
@@ -1496,6 +1498,7 @@
           if (conversationHistory.length > 0) {
             displayConversationHistory(conversationHistory);
           } else {
+            console.log('No conversation history found.');
             // History yoksa hoş geldin mesajını göster
             addWelcomeMessage();
           }

@@ -9,6 +9,7 @@ const chatContainer = document.getElementById('chat') as HTMLDivElement;
 
 // Sayfa yüklendiğinde karşılama mesajını ekle
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('Webview loaded');
   addWelcomeMessage(chatContainer);
 });
 
@@ -43,6 +44,7 @@ window.addEventListener('message', event => {
       break;
     case 'clearChat':
       chatContainer.innerHTML = '';
+      console.log('Chat cleared');
       addWelcomeMessage(chatContainer);
       break;
   }
