@@ -88,7 +88,8 @@ export async function askDeepSeek(prompt: string, originalUserMessage?: string, 
         temperature: 0.7,
         max_tokens: 4000,
         stream: true
-      })
+      }),
+      signal: AbortSignal.timeout(180000) // 3 dakika timeout
     });
 
     if (!response.ok) {

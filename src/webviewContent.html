@@ -1043,13 +1043,13 @@
       // Loading mesajını göster/gizle
       if (loading) {
         showLoadingMessage();
-        // 30 saniye timeout ekle
+        // 3.5 dakika timeout ekle (backend timeout'tan biraz fazla)
         loadingTimeout = setTimeout(function() {
           if (isLoading) {
             setLoadingState(false);
             showErrorMessage('Response timeout. Please try again.');
           }
-        }, 30000);
+        }, 210000);
       } else {
         hideLoadingMessage();
         // Timeout'u temizle

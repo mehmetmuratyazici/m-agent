@@ -464,7 +464,7 @@ Aşağıdaki 4 işlem türünden istediğin kadarını kullanabilirsin. Her dosy
 
 ## 📌 Kurallar:
 
-- Proje ilkkez oluşturulurken projenin çalışması için gerekli olan tüm dosyaları doğru şekilde oluştur. ÇOK KRİTİK KURAL
+- Proje ilkkez oluşturulurken projenin çalışması için gerekli olan tüm dosyaları ekle. ÇOK KRİTİK KURAL
 - ✅ Cevap **birden fazla kod bloğu** içerebilir. Her dosya işlemi için ayrı kod bloğu kullan.
 - 🧾 Her blok yukarıdaki 4 formatta biri ile başlamalı (\`update:\`, \`create:\`, \`delete:\`, \`read:\`).
 - ✅ Kod bloğu dışında açıklama yapabilirsin, ancak dosya işlemleri için mutlaka kod bloğu kullan.

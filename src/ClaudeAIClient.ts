@@ -125,6 +125,8 @@ export async function askClaude(prompt: string, originalUserMessage?: string, im
       model: 'claude-3-5-sonnet-latest',//'claude-sonnet-4-20250514',
       max_tokens: 8000,
       messages: allMessages
+    }, {
+      timeout: 180000 // 3 dakika timeout (options düzeyinde)
     });
 
     if (!response.content || !response.content[0]) {

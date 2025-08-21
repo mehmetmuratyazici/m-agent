@@ -57,7 +57,9 @@ let chatSession: ChatSession | null = null;
 // Initialize chat session
 function initializeChatSession() {
   if (!chatSession) {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash"
+    });
     chatSession = model.startChat({
       history: [],
       generationConfig: {
@@ -142,16 +144,25 @@ export async function askGemini(prompt: string, originalUserMessage?: string, im
       });
     }
     
-    // Send message to chat session
-    const result = await session.sendMessage(messageParts);
-    const response = result.response;
-    const text = response.text();
+    // Send message to chat session with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 dakika timeout
     
-    // Add assistant response to history
-    addToHistory('assistant', text);
-    
-    console.log("Yanıt:", text);
-    return text;
+    try {
+      const result = await session.sendMessage(messageParts);
+      clearTimeout(timeoutId);
+      const response = result.response;
+      const text = response.text();
+      
+      // Add assistant response to history
+      addToHistory('assistant', text);
+      
+      console.log("Yanıt:", text);
+      return text;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      throw error;
+    }
   } catch (err: any) {
     console.error("Hata:", err.message || err);
     return err.message;
