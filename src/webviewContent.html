@@ -59,7 +59,11 @@
     }
     .message.user {
       align-self: flex-end;
-      background: linear-gradient(90deg, #00c3ff 0%, #0072ff 100%);
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: none;
       color: #fff;
     }
     .message.assistant {
@@ -509,13 +513,97 @@
     
     .error-content {
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      gap: 10px;
     }
     
     .error-text {
       color: #ff6666;
       font-size: 0.95em;
       font-weight: 500;
+    }
+    
+    .retry-container {
+      display: flex;
+      justify-content: flex-start;
+      margin-top: 8px;
+    }
+    
+    .retry-btn {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9em;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .retry-btn:hover {
+      background: #45a049;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+    }
+    
+    .retry-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Kullanıcı mesajları için retry button stilleri */
+    
+    .user-message-content {
+      flex: 1;
+      background: #4a90e2;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 18px;
+      font-size: 1em;
+      line-height: 1.4;
+      word-wrap: break-word;
+      max-width: 70%;
+      margin-left: auto;
+    }
+    
+    .user-retry-container {
+      display: flex;
+      align-items: center;
+      margin-top: 4px;
+    }
+    
+    .user-retry-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      opacity: 0.7;
+    }
+    
+    .user-retry-btn:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1);
+    }
+    
+    .user-retry-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .message.user:hover .user-retry-btn {
+      opacity: 1;
     }
     
     /* Dosya işlemleri stilleri */
@@ -725,6 +813,7 @@
     var conversationHistory = []; // Conversation history
     var selectedImage = null; // Seçilen resim
     var currentProvider = 'gemini'; // Mevcut AI provider
+    var lastFailedMessage = null; // Son başarısız olan mesajı saklamak için
 
     // Sayfa yüklendiğinde çalışacak fonksiyon
     function initializeWebview() {
@@ -1005,10 +1094,89 @@
       errorMsg.innerHTML = `
         <div class="error-content">
           <span class="error-text">⚠️ ${message}</span>
+          ${lastFailedMessage ? `
+            <div class="retry-container">
+              <button class="retry-btn" onclick="retryLastMessage()">
+                🔄 Yeniden Gönder
+              </button>
+            </div>
+          ` : ''}
         </div>
       `;
       chat.appendChild(errorMsg);
       chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Kullanıcı mesajı oluştur (retry butonu ile birlikte)
+    function createUserMessage(messageText, imageData) {
+      var userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      
+      var messageContent = document.createElement('div');
+      messageContent.className = 'user-message-content';
+      messageContent.textContent = messageText;
+      
+      var retryContainer = document.createElement('div');
+      retryContainer.className = 'user-retry-container';
+      
+      var retryBtn = document.createElement('button');
+      retryBtn.className = 'user-retry-btn';
+      retryBtn.innerHTML = '🔄';
+      retryBtn.title = 'Bu mesajı yeniden gönder';
+      
+      // Retry button click handler
+      retryBtn.onclick = function(e) {
+        e.preventDefault();
+        retryMessage(messageText, imageData);
+      };
+      
+      retryContainer.appendChild(retryBtn);
+      userMsg.appendChild(messageContent);
+      userMsg.appendChild(retryContainer);
+      
+      chat.appendChild(userMsg);
+    }
+
+    // Belirli bir mesajı yeniden gönder
+    function retryMessage(messageText, imageData) {
+      if (isLoading) {
+        return;
+      }
+      
+      // Input alanını doldur
+      if (input) {
+        input.value = messageText;
+      }
+      
+      // Eğer resim varsa, seçili resmi geri yükle
+      if (imageData) {
+        selectedImage = imageData;
+        showImagePreview();
+      }
+      
+      // Mesajı gönder
+      sendMessage();
+    }
+
+    // Son mesajı yeniden gönder (eski fonksiyon)
+    function retryLastMessage() {
+      if (!lastFailedMessage || isLoading) {
+        return;
+      }
+      
+      // Input alanını geçici olarak doldur
+      if (input) {
+        input.value = lastFailedMessage.text;
+      }
+      
+      // Eğer resim varsa, seçili resmi geri yükle
+      if (lastFailedMessage.imageData) {
+        selectedImage = lastFailedMessage.imageData;
+        showImagePreview();
+      }
+      
+      // Mesajı gönder
+      sendMessage();
     }
 
     // Conversation history'yi yükle
@@ -1314,10 +1482,7 @@
       history.forEach(function(msg) {
         if (msg.role === 'user') {
           // Kullanıcı mesajı
-          var userMsg = document.createElement('div');
-          userMsg.className = 'message user';
-          userMsg.textContent = msg.content;
-          chat.appendChild(userMsg);
+          createUserMessage(msg.content, null);
         } else if (msg.role === 'assistant') {
           // Asistan mesajı
           var botMsg = document.createElement('div');
@@ -1385,19 +1550,22 @@
         return;
       }
       
-      // Loading state'ini aktif et
-      setLoadingState(true);
-      
       // Kullanıcı mesajını ekle
-      var userMsg = document.createElement('div');
-      userMsg.className = 'message user';
-      userMsg.textContent = value;
-      chat.appendChild(userMsg);
+      createUserMessage(value, selectedImage);
       input.value = '';
       chat.scrollTop = chat.scrollHeight;
       
+      // Loading state'ini aktif et (kullanıcı mesajından sonra)
+      setLoadingState(true);
+      
       // Mesajı history'ye ekle
       addMessageToHistory('user', value);
+      
+      // Son gönderilen mesajı sakla (retry için)
+      lastFailedMessage = {
+        text: value,
+        imageData: selectedImage
+      };
       
       // VSCode'a mesaj gönder
       try {
@@ -1426,6 +1594,9 @@
         case 'addResponse':
           // Loading state'ini kapat
           setLoadingState(false);
+          
+          // Başarılı yanıt geldi, son başarısız mesajı temizle
+          lastFailedMessage = null;
           
           // Asistan mesajını ekle
         var botMsg = document.createElement('div');
