@@ -55,6 +55,7 @@ function initializeAnthropicClient() {
     
     anthropicClient = new Anthropic({
       apiKey: apiKey,
+      timeout: 180000, // 3 dakika (180 saniye) timeout
     });
   }
   return anthropicClient;

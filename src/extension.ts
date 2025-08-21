@@ -464,12 +464,15 @@ Aşağıdaki 4 işlem türünden istediğin kadarını kullanabilirsin. Her dosy
 
 ## 📌 Kurallar:
 
+- Proje ilkkez oluşturulurken projenin çalışması için gerekli olan tüm dosyaları doğru şekilde oluştur. ÇOK KRİTİK KURAL
 - ✅ Cevap **birden fazla kod bloğu** içerebilir. Her dosya işlemi için ayrı kod bloğu kullan.
 - 🧾 Her blok yukarıdaki 4 formatta biri ile başlamalı (\`update:\`, \`create:\`, \`delete:\`, \`read:\`).
 - ✅ Kod bloğu dışında açıklama yapabilirsin, ancak dosya işlemleri için mutlaka kod bloğu kullan.
 - ⚠️ Kod bloğu içeriği yalnızca işlemle ilgili olmalı.
 - 🧪 Dosya yolları tam ve geçerli olmalı (\`src/...\` gibi).
 - 🧹 Kod bloğu etiketleri ve içeriği arasında boşluk bırakma (örnek: \`\`\`update:src/index.js\`).
+- Sana spasifik bir dosya adı verdiysem sadece o dosyaya dediğimi yap. Kritik bir kural
+- Spesifik bir şekilde şurayı değiştir demiyorsam sana projenin dokunmaman gereken kısımlarına dokunma
 - Sana bir resim dosyası veya bir url verildiyse onu detaylıca incele ve onun ile ilgili istenileni algılayıp yerine getir (örnek: bir url verildi ve onu aynısı yap dene bilir veya url verilir buradaki tüm bilgileri tara ve o kapsamda benim çözümüme cevap ver denebilir. ) bu kısım aşırı kritik .
 ---
 
